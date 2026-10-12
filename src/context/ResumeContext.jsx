@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { initialResumeData, blankResumeData } from '../data/defaultResume';
 import { initialCustomization } from '../data/customizationDefaults';
 import { useAuth } from './AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const ResumeContext = createContext(null);
 
@@ -264,7 +265,7 @@ export function ResumeProvider({ children }) {
     }
   }, [currentUserId, isLoggedIn]);
 
-  // Save to localStorage on change - ONLY when resumes in state belong to currentUserId!
+  // Save to localStorage & sync to Supabase Cloud on change
   useEffect(() => {
     if (loadedUserIdRef.current !== currentUserId) {
       // Prevents race-condition overwrite when user changes
@@ -273,10 +274,75 @@ export function ResumeProvider({ children }) {
     try {
       const toSave = resumes.filter((r) => !isUneditedDraft(r));
       localStorage.setItem(storageKey, JSON.stringify(toSave));
+
+      // Sync to Supabase Cloud if user is authenticated and Supabase is configured
+      if (isSupabaseConfigured && isLoggedIn && currentUserId && currentUserId !== 'guest') {
+        toSave.forEach((r) => {
+          if (!r?.id) return;
+          supabase
+            .from('resumes')
+            .upsert({
+              id: r.id,
+              user_id: user.id,
+              title: r.title || 'My Resume',
+              template_id: r.templateId || 'modern',
+              data: r.data || {},
+              customization: r.customization || {},
+              is_draft: Boolean(r.isDraft),
+              updated_at: new Date(r.updatedAt || Date.now()).toISOString(),
+            })
+            .then(() => {})
+            .catch((err) => console.warn('Supabase sync warning:', err));
+        });
+      }
     } catch (e) {
       console.error('Error saving resumes list:', e);
     }
-  }, [resumes, storageKey, currentUserId]);
+  }, [resumes, storageKey, currentUserId, isLoggedIn, user?.id]);
+
+  // Load from Supabase Cloud on login
+  useEffect(() => {
+    if (!isSupabaseConfigured || !isLoggedIn || !user?.id || user.id === 'guest') return;
+
+    async function loadCloudResumes() {
+      try {
+        const { data, error } = await supabase
+          .from('resumes')
+          .select('*')
+          .eq('user_id', user.id);
+
+        if (!error && Array.isArray(data) && data.length > 0) {
+          const cloudList = data.map((row) => ({
+            id: row.id,
+            title: row.title || 'My Resume',
+            templateId: row.template_id || 'modern',
+            data: row.data || {},
+            customization: row.customization || {},
+            isDraft: Boolean(row.is_draft),
+            updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
+            history: [],
+          }));
+
+          setResumes((prev) => {
+            const existingIds = new Set(prev.map((r) => r.id));
+            const newResumes = cloudList.filter((cr) => !existingIds.has(cr.id));
+            if (newResumes.length > 0) {
+              const merged = [...prev, ...newResumes];
+              try {
+                localStorage.setItem(`proresume_resumes_${user.id}`, JSON.stringify(merged));
+              } catch (e) {}
+              return merged;
+            }
+            return prev;
+          });
+        }
+      } catch (err) {
+        console.warn('Could not load from Supabase:', err);
+      }
+    }
+
+    loadCloudResumes();
+  }, [user?.id, isLoggedIn]);
 
   // Active resume object
   const activeResume = resumes.find((r) => r.id === activeResumeId) || resumes[0] || null;
@@ -397,6 +463,10 @@ export function ResumeProvider({ children }) {
       }
       return remaining;
     });
+
+    if (isSupabaseConfigured && isLoggedIn && user?.id && user.id !== 'guest') {
+      supabase.from('resumes').delete().eq('id', id).then(() => {}).catch(e => console.warn(e));
+    }
   };
 
   // Delete All Resumes
@@ -405,6 +475,9 @@ export function ResumeProvider({ children }) {
     setActiveResumeId(null);
     try {
       localStorage.setItem(storageKey, JSON.stringify([]));
+      if (isSupabaseConfigured && isLoggedIn && user?.id && user.id !== 'guest') {
+        supabase.from('resumes').delete().eq('user_id', user.id).then(() => {}).catch(e => console.warn(e));
+      }
     } catch (e) {
       console.error('Error clearing resumes in storage:', e);
     }

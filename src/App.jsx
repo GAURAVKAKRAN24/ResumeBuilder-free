@@ -47,8 +47,8 @@ export function App() {
   // Mobile View Toggle: 'editor' | 'preview'
   const [mobileView, setMobileView] = useState('editor');
 
-  // Zoom scale for preview
-  const [zoom, setZoom] = useState(0.95);
+  // Zoom scale for preview (Default 110%)
+  const [zoom, setZoom] = useState(1.1);
 
   // Modals & Toast
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);

@@ -23,6 +23,7 @@ import {
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import { CVnestLogo } from './CVnestLogo';
+import { UserAvatar } from './UserAvatar';
 
 export function Navbar({
   resumeTitle,
@@ -189,7 +190,11 @@ export function Navbar({
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="px-1 text-[11px] font-semibold text-slate-700 min-w-[42px] text-center">
+            <span 
+              onClick={() => setZoom(1.1)} 
+              title="Click to reset to default (110%)"
+              className="px-1 text-[11px] font-semibold text-slate-700 min-w-[42px] text-center cursor-pointer hover:text-teal-700 select-none"
+            >
               {Math.round(zoom * 100)}%
             </span>
             <button
@@ -294,29 +299,31 @@ export function Navbar({
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-indigo-400 transition-all"
+                className="flex items-center gap-2 p-0.5 rounded-full hover:ring-2 hover:ring-teal-400 focus:outline-hidden transition-all"
                 title={user?.name || "User account"}
               >
-                {user?.picture ? (
-                  <img
-                    src={user.picture}
-                    alt={user.name || "User"}
-                    className="w-8 h-8 rounded-full object-cover border border-slate-200"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
-                    {user?.name?.[0] || 'U'}
-                  </div>
-                )}
+                <UserAvatar
+                  user={user}
+                  size="sm"
+                  variant="navbar"
+                  showStatus={true}
+                />
               </button>
 
               {userMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95">
-                    <div className="px-4 py-2 border-b border-slate-100">
-                      <div className="text-xs font-bold text-slate-900 truncate">{user?.name}</div>
-                      <div className="text-[11px] text-slate-500 truncate">{user?.email}</div>
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95">
+                    <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
+                      <UserAvatar
+                        user={user}
+                        size="md"
+                        variant="navbar"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 truncate">{user?.name || 'User'}</div>
+                        <div className="text-[11px] text-slate-500 truncate">{user?.email}</div>
+                      </div>
                     </div>
                     <button
                       onClick={() => {

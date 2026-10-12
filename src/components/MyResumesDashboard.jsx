@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CVnestLogo } from './CVnestLogo';
+import { UserAvatar } from './UserAvatar';
 import { 
   Plus, 
   FileText, 
@@ -526,17 +527,12 @@ export function MyResumesDashboard({ onOpenEditor }) {
           {/* User Profile Bar */}
           <div className="pt-3 border-t border-teal-800/40 flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              {user?.picture ? (
-                <img
-                  src={user.picture}
-                  alt={user.name || "User"}
-                  className="w-8 h-8 rounded-full border border-teal-700/60 object-cover shrink-0"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
-                  {user?.name?.[0] || (isLoggedIn ? 'U' : 'G')}
-                </div>
-              )}
+              <UserAvatar
+                user={user}
+                size="sm"
+                variant="sidebar"
+                showStatus={isLoggedIn}
+              />
               <div className="truncate">
                 <div className="text-xs font-bold text-white truncate">
                   {isLoggedIn ? (user?.name || "Logged In User") : "Guest User"}
