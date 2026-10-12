@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root, button, input, textarea, select {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  }
+  html {
+    scroll-behavior: smooth;
+    font-size: 15px;
+  }
+  body {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+}
+
+/* Custom scrollbar for sleeker UI */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print specific styles for flawless A4 resume export */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Reset layout constraints on ancestors so page breaks and flow work */
+  #root,
+  main,
+  section,
+  .overflow-hidden,
+  .overflow-auto,
+  .overflow-y-auto {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  /* Hide all editor and app chrome */
+  header,
+  nav,
+  aside,
+  button,
+  .no-print,
+  .app-sidebar,
+  .app-topbar,
+  .zoom-toolbar,
+  .fixed {
+    display: none !important;
+  }
+
+  /* Force preview section to display even if hidden by mobileView state */
+  section {
+    display: block !important;
+  }
+
+  /* Reset zoom transform container in preview */
+  .resume-zoom-container {
+    transform: none !important;
+    transition: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
+  .resume-outer-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  /* Paper container takes full page without overflow */
+  #resume-print-area {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: auto !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    transform: none !important;
+    overflow: visible !important;
+  }
+
+  /* Avoid breaking inside individual entry cards */
+  .avoid-break,
+  .avoid-page-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  h1, h2, h3 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+}
+
+/* Clean styles applied specifically during PDF export to eliminate empty 2nd page */
+.exporting-pdf {
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  transform: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  width: 210mm !important;
+  max-width: 210mm !important;
+  margin: 0 !important;
+}
+
+.exporting-pdf * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* A4 Paper Dimensions preview in editor */
+.a4-paper {
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Pulse animation for active editing */
+@keyframes subtlePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+.pulse-subtle {
+  animation: subtlePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
